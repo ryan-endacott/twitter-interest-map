@@ -49,7 +49,7 @@ var blacklist = ['world', 'theworld'];
 
 var twitterUsernames = ['nodejs', 'google', 'CNN'];
 
-var LIMIT_USER_SEARCH = 20;
+var LIMIT_USER_SEARCH = 10;
 var completedUserRequests = 0, currentUsername = 0, follower_locations = [];
 
 function resetSearchVariables() {

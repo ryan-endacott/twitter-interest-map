@@ -55,8 +55,8 @@ function getFollowerLocations(screen_name) {
     if (err) console.log(err);
 	if (!data) return;
     if (data.ids.length > LIMIT_USER_SEARCH) {
-	  data.ids.splice(0,data.ids.length - LIMIT_USER_SEARCH);
-	}
+      data.ids.splice(0,data.ids.length - LIMIT_USER_SEARCH);
+    }
     twit.get('/users/lookup.json', {user_id: data.ids.join()}, function(err, users) {
 	  //console.log(users);
 	  users.forEach(function(user) {
@@ -77,4 +77,4 @@ function getFollowerLocations(screen_name) {
 	});
   });
 }
-getFollowerLocations(twitterUsernames[currentUsername]);
+getFollowerLocations(twitterUsernames[0]);

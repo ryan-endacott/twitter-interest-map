@@ -45,48 +45,36 @@ var twit = new twitter({
 });
 var blacklist = ['world', 'theworld'];
 
+var twitterUsernames = ['nodejs', 'google'];
+var LIMIT_USER_SEARCH = 30;
+var currentUsername = 0;
 
-
-var twitterUsernames = ['nodejs', 'google', 'CNN'];
-
-var LIMIT_USER_SEARCH = 10;
-var completedUserRequests = 0, currentUsername = 0, follower_locations = [];
-
-function resetSearchVariables() {
-  completedUserRequests = 0;
-  follower_locations = [];
-}
-
-var checkStatus = setInterval(function() {
-  if (completedUserRequests == LIMIT_USER_SEARCH) {
-    console.log('\n"'+twitterUsernames[currentUsername] + '" follower locations:');
-    console.log(follower_locations);
-    // update DB here with the follower locations
-    resetSearchVariables();
-    currentUsername++;
-	if (currentUsername != (twitterUsernames.length)) {
-      getFollowerLocations(twitterUsernames[currentUsername]);
-	} else {
-      clearInterval(checkStatus);
-	}
-  }
-}, 1000)
 function getFollowerLocations(screen_name) {
+  var follower_locations = [];
   twit.get('/followers/ids.json', {screen_name: screen_name}, function(err, data) {
     if (err) console.log(err);
 	if (!data) return;
     if (data.ids.length > LIMIT_USER_SEARCH) {
 	  data.ids.splice(0,data.ids.length - LIMIT_USER_SEARCH);
 	}
-	data.ids.forEach(function(id) {
-      twit.get('/users/lookup.json', {user_id: id}, function(err, user) {
-        completedUserRequests++;
-        if (err) console.log(err);
-        if (user && user[0].location && (blacklist.indexOf(user[0].location) == -1 )) {
-          follower_locations.push(user[0].location);
+    twit.get('/users/lookup.json', {user_id: data.ids.join()}, function(err, users) {
+	  //console.log(users);
+	  users.forEach(function(user) {
+	    if (err) console.log(err);
+        if (user && user.location && (blacklist.indexOf(user.location) == -1 )) {
+          follower_locations.push(user.location);
         }
 	  });
-    });
+      console.log('\n"'+ screen_name + '" follower locations:');
+      console.log(follower_locations);
+       // update DB here with the follower locations
+       currentUsername++;
+	   if (currentUsername != twitterUsernames.length) {
+		getFollowerLocations(twitterUsernames[currentUsername]);
+	   } else {
+	     console.log("Done");
+	   }
+	});
   });
 }
 getFollowerLocations(twitterUsernames[currentUsername]);

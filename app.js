@@ -60,9 +60,8 @@ function getFollowerLocations(screen_name) {
   twit.get('/followers/ids.json', {screen_name: screen_name}, function(err, data) {
     if (err) console.log(err);
 	if (!data) return;
-    var follower_count = data.ids.length;
-    if (follower_count > LIMIT_USER_SEARCH) {
-	  data.ids.splice(0,follower_count - LIMIT_USER_SEARCH);
+    if (data.ids.length > LIMIT_USER_SEARCH) {
+	  data.ids.splice(0,data.ids.length - LIMIT_USER_SEARCH);
 	}
 	console.log('Looking up '+ data.ids.length + ' users');
     data.ids.forEach(function(id) {

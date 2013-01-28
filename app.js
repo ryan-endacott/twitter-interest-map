@@ -46,7 +46,7 @@ var twit = new twitter({
 var blacklist = ['world', 'theworld'];
 
 var twitterUsernames = ['nodejs', 'google'];
-var LIMIT_USER_SEARCH = 30;
+var LIMIT_USER_SEARCH = 100;
 var currentUsername = 0;
 
 function getFollowerLocations(screen_name) {
@@ -58,9 +58,10 @@ function getFollowerLocations(screen_name) {
       data.ids.splice(0,data.ids.length - LIMIT_USER_SEARCH);
     }
     twit.get('/users/lookup.json', {user_id: data.ids.join()}, function(err, users) {
+      if (err) console.log(err);
+      if (!users) return;
 	  //console.log(users);
 	  users.forEach(function(user) {
-	    if (err) console.log(err);
         if (user && user.location && (blacklist.indexOf(user.location) == -1 )) {
           follower_locations.push(user.location);
         }

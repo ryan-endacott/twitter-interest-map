@@ -45,15 +45,30 @@ var twit = new twitter({
 });
 var blacklist = ['world', 'theworld'];
 
-getFollowerLocations('nodejs');
 
 
-var LIMIT_USER_SEARCH = 10;
-var completedUserRequests = 0, follower_locations = [];
+var twitterUsernames = ['nodejs', 'google', 'CNN'];
+
+var LIMIT_USER_SEARCH = 20;
+var completedUserRequests = 0, currentUsername = 0, follower_locations = [];
+
+function resetSearchVariables() {
+  completedUserRequests = 0;
+  follower_locations = [];
+}
+
 var checkStatus = setInterval(function() {
   if (completedUserRequests == LIMIT_USER_SEARCH) {
-	console.log(follower_locations);
-	clearInterval(checkStatus);
+    console.log('\n"'+twitterUsernames[currentUsername] + '" follower locations:');
+    console.log(follower_locations);
+    // update DB here with the follower locations
+    resetSearchVariables();
+    currentUsername++;
+	if (currentUsername != (twitterUsernames.length)) {
+      getFollowerLocations(twitterUsernames[currentUsername]);
+	} else {
+      clearInterval(checkStatus);
+	}
   }
 }, 1000)
 function getFollowerLocations(screen_name) {
@@ -63,8 +78,7 @@ function getFollowerLocations(screen_name) {
     if (data.ids.length > LIMIT_USER_SEARCH) {
 	  data.ids.splice(0,data.ids.length - LIMIT_USER_SEARCH);
 	}
-	console.log('Looking up '+ data.ids.length + ' users');
-    data.ids.forEach(function(id) {
+	data.ids.forEach(function(id) {
       twit.get('/users/lookup.json', {user_id: id}, function(err, user) {
         completedUserRequests++;
         if (err) console.log(err);
@@ -75,3 +89,4 @@ function getFollowerLocations(screen_name) {
     });
   });
 }
+getFollowerLocations(twitterUsernames[currentUsername]);

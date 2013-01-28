@@ -46,7 +46,19 @@ var twit = new twitter({
   access_token_key: '1126351788-uZza6Zb6IKLQ3xcdXg8Moegr0OeA6FIljLZQB6U',
   access_token_secret: 'rrqAlFwbWa86KideKwOxlGjtPmPEuP7TR623ivOc'
 });
-
+var blacklist = ['world', 'theworld'];
 twit.get('/followers/ids.json', {screen_name: 'nodejs'}, function(err, data) {
-  console.log(data);
+  if (err) console.log(err);
+  var follower_count = data.ids.length;
+  if (follower_count > 10) {
+	data.ids.splice(0,follower_count-10);
+  }
+  data.ids.forEach(function(id) {
+	twit.get('/users/lookup.json', {user_id: id}, function(err, user) {
+		if (err) console.log(err);
+		if (user && user[0].location && (blacklist.indexOf(user[0].location) == -1 )) {
+			console.log(user[0].location);
+		}
+	});
+  });
 });

@@ -13,25 +13,24 @@ mongoose.connect(config.db.URI);
 
 var interestSchema = new Schema({
   name: String,
+
+    // Twitter handles associated with a given interest
   twitter_names: [String],
-    // Locations and counts should act as one object. They should
-    // Be synced together perfectly.  E.g. locations[i] correlates to counts[i]
-  locations: [{ type: Schema.Types.ObjectId, ref: 'location'}],
-  counts: [Number]
+
+    // Get the locations by calling:
+    // db.interest.findOne().populate('map_data.location').exec(
+    // function(err, result) {});
+  map_data: [{
+    location: {type: Schema.Types.ObjectId, ref: 'location'},
+    count: Number
+  }]
+
 });
 
-// For interest schema, it would probably be better to have:
-//  map_data: [{
-//    location: {type: Schema.Types.ObjectId, ref: 'location'},
-//    count: Number
-//  }]
-// But I haven't figured out how to use Mongoose to populate that field
-// (if it is possible)
 
 var locationSchema = new Schema({
   name: String
 });
-
 
 
 // Export models

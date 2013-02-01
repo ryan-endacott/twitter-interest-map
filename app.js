@@ -53,8 +53,8 @@ var currentUsername = 0;
 
 var numbers = /[0-9]/; //prevent numbers from being in one of the locations
 
-function getFollowerLocations(screen_name) {
-  var follower_locations = [];
+function getFollowers(screen_name) {
+  var followers = [];
   twit.get('/followers/ids.json', {screen_name: screen_name}, function(err, data) {
     if (err) console.log(err);
 	if (!data) return;
@@ -66,15 +66,15 @@ function getFollowerLocations(screen_name) {
       if (!users) return;
 	  users.forEach(function(user) {
         if (user && user.location && (blacklist.indexOf(user.location) == -1 ) && !numbers.test(user.location)) {
-          follower_locations.push(user.location);
+          followers.push({location: user.location, uid: user.id});
         }
 	  });
       console.log('\n"'+ screen_name + '" follower locations:');
-      console.log(follower_locations);
+      console.log(followers);
        // update DB here with the follower locations
        currentUsername++;
 	   if (currentUsername != twitterUsernames.length) {
-		getFollowerLocations(twitterUsernames[currentUsername]);
+		getFollowers(twitterUsernames[currentUsername]);
 	   } else {
 	     console.log("Done");
 	   }
@@ -83,7 +83,7 @@ function getFollowerLocations(screen_name) {
 }
 
 //uncomment the following line to query twitter for the folower uid's and locations
-//getFollowerLocations(twitterUsernames[0]);
+getFollowers(twitterUsernames[0]);
 
 //we can use the google maps geolocation api to convert location strings to objects with city, state, and country strings
 //this example functions takes an address and writes an object with the state and city to the console

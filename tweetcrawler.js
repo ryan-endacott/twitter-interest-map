@@ -62,6 +62,31 @@ tweetCrawler.run = function() {
         twit.get('/followers/ids.json', {screen_name: twitter_name}, group());
       });
     },
+    function getFollowerLocsFromCache(err, followers) {
+      if (err) throw err;
+
+      var _this = this;
+      var ids = followers.ids;
+
+      // Find all users that we already have stored
+      db.user.find().where('twitter_id').in(ids).populate('location').exec(function(err, results) {
+
+        // Build up list of cached and uncached
+        var cachedFollowers = [];
+        var uncachedFollowers = [];
+
+        for (var i = 0; i < results.length; i++) {
+
+          var index = ids.indexOf(results[i].twitter_id);
+
+          // Found, so add its info to cached
+          if (index > 0)
+            cachedFollowers.push({});
+
+        }
+        _this(err, results, followers);
+      });
+    },
     function getFollowerLocs(err, followers) {
       if (err) throw err;
       // If no follower data gained, just move on.  The interest
@@ -76,6 +101,8 @@ tweetCrawler.run = function() {
 
   )
 }
+
+
 
 
 

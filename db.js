@@ -31,6 +31,7 @@ var interestSchema = new Schema({
 
 
 var locationSchema = new Schema({
+  raw: String,
   city: String,
   state: String,
   country: String

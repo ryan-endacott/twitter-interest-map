@@ -2,10 +2,6 @@
 
 module.exports = {
     db: {
-        database: 'InterestMap',
-        host: 'instance37525.db.xeround.com',
-        port: 5659,
-        username: 'interestmapdb',
-        password: 'thebestmapever'
+      URI: 'mongodb://interestmapuser:thebestmapever@linus.mongohq.com:10069/InterestMap'
     }
 }

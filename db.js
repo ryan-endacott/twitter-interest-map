@@ -1,56 +1,44 @@
+// Mongoose database models and schemas
+
 var config = require('./config/config'),
-  Sequelize = require('sequelize');
+  mongoose = require('mongoose'),
+  Schema = mongoose.Schema,
+  connection = mongoose.connection;
 
 
-var sequelize = new Sequelize(
-  config.db.database,
-  config.db.username,
-  config.db.password, 
-  {
-    host: config.db.host,
-    port: config.db.port
-  }
-);
+mongoose.connect(config.db.URI);
 
 
-var db = {};
+// Set up schemas
 
-// Set up models
+var interestSchema = new Schema({
+  name: String,
 
-db.interests = sequelize.define('interests', {
-  name: Sequelize.STRING
-}, {timestamps: false});
+    // Twitter handles associated with a given interest
+  twitter_names: [String],
 
-db.twitterinfo = sequelize.define('twitterinfo', {
-  username: Sequelize.STRING
-}, {timestamps: false});
+    // Get the locations by calling:
+    // db.interest.findOne().populate('map_data.location').exec(
+    // function(err, result) {});
+  map_data: [{
+    location: {type: Schema.Types.ObjectId, ref: 'location'},
+    count: Number
+  }]
 
-db.locations = sequelize.define('locations', {
-  name: Sequelize.STRING
-}, {timestamps: false});
-
-db.counts = sequelize.define('counts', {
-  amount: Sequelize.INTEGER
-}, {timestamps: false});
+});
 
 
-// Set up associations
-
-db.interests.hasMany(db.twitterinfo);
-
-db.interests.hasMany(db.counts);
-
-db.locations.hasMany(db.counts);
+var locationSchema = new Schema({
+  name: String
+});
 
 
-// Sync
+// Export models
 
-// Uncomment to force:
-//sequelize.sync({force: true});
+module.exports = {
+  interest: mongoose.model('interest', interestSchema),
+  location: mongoose.model('location', locationSchema)
+};
 
-// Unforced:
-sequelize.sync();
 
-
-module.exports = db;
 

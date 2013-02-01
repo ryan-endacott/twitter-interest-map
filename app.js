@@ -47,7 +47,7 @@ var twit = new twitter({
 });
 var blacklist = ['world', 'theworld'];
 
-var twitterUsernames = ['nodejs', 'google'];
+var twitterUsernames = ['nodejs'];
 var LIMIT_USER_SEARCH = 100;
 var currentUsername = 0;
 
@@ -76,7 +76,7 @@ function getFollowers(screen_name) {
 
 function findUser(followers) {
 	followers.forEach(function(follower) {
-		db.user.find({twitter_id:follower.id}).exec( function (err, user) {
+		db.user.find({twitter_id:follower.uid}).exec( function (err, user) {
 		  if (user.length) {
 		  
 		  } else { 
@@ -84,7 +84,8 @@ function findUser(followers) {
 
         addLocationToDB(follower.location, function(err, newLoc) {
           console.log('line 86');
-          var user = new db.user({twitter_id: follower.id, location: newLoc._id});
+		  console.log(follower.uid);
+          var user = new db.user({twitter_id: follower.uid, location: newLoc._id});
           user.save();
         })
 		  }
@@ -107,38 +108,36 @@ getFollowers(twitterUsernames[0]);
 function getLocation(address, callback) {
 	request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
-		var location = {};
+		var location = {raw: address};
+		if (JSON.parse(body).results.length) {
 		address_components = JSON.parse(body).results[0].address_components;
-    if (address_components){
-      for (var i=0;i<address_components.length;i++) {
-        if (address_components[i].types.indexOf('locality') != -1) {
-          location.city = address_components[i].long_name;
-        } else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
-          location.state = address_components[i].long_name;
-        } else if (address_components[i].types.indexOf('country') != -1) {
-          location.country = address_components[i].long_name;
-        }
-      }
-
+		if (address_components){
+		  for (var i=0;i<address_components.length;i++) {
+			if (address_components[i].types.indexOf('locality') != -1) {
+			  location.city = address_components[i].long_name;
+			} else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
+			  location.state = address_components[i].long_name;
+			} else if (address_components[i].types.indexOf('country') != -1) {
+			  location.country = address_components[i].long_name;
+			}
+		  }
+		}
     }
 
 		callback(location);
 	  }
 	})
 }
-getLocation('baltimore', function(location) {
-	console.log(location);
-});
-
-
 function addLocationToDB(rawLoc, callback) {
   console.log('Execution just entered addLocationToDB');
   db.location.findOne({raw: rawLoc}, function(err, location) {
     if (!err && location) return;
     else { // Add location if it didn't exist
       getLocation(rawLoc, function(location) {
-        var newLoc = new db.location(location);
-        newLoc.save(callback);
+		if (location) {
+			var newLoc = new db.location(location);
+			newLoc.save(callback);
+		}
       })
     }
   });

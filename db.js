@@ -35,9 +35,9 @@ var locationSchema = new Schema({
 });
 
 
-var userSchema = new Scheam({
+var userSchema = new Schema({
   twitter_id: Number,
-  location: {type: Schema.Types.ObjectId, ref: 'location}
+  location: {type: Schema.Types.ObjectId, ref: 'location'}
 });
 
 
@@ -45,7 +45,8 @@ var userSchema = new Scheam({
 
 module.exports = {
   interest: mongoose.model('interest', interestSchema),
-  location: mongoose.model('location', locationSchema)
+  location: mongoose.model('location', locationSchema),
+  user: mongoose.model('user', userSchema)
 };
 
 

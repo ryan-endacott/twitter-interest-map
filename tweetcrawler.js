@@ -1,7 +1,7 @@
 // This is the file that will hopefully do all of the twitter database work
 // Hopefully a successful refactoring of app.js
 
-var Step = require('step'),
+var async = require('async'),
   db = require('./db'),
   twitter = require('ntwitter');
 
@@ -25,85 +25,127 @@ var cachedInterests;
 
 tweetCrawler.run = function() {
 
-  Step(
+  console.log('Starting another tweetCrawler.run()');
 
-    function getInterestsToCrawl() {
+  async.waterfall([
+
+    function getInterestsToCrawl(callback) {
       if (cachedInterests) 
-        this(null, cachedInterests);
+        callback(null, cachedInterests);
       else  
-        db.interest.find(this);
+        db.interest.find(callback);
     },
-    function cacheInterests(err, interests) {
-      if (err) throw err;
+    function cacheInterests(interests, callback) {
 
       cachedInterests = interests;
 
-      this(null, interests);
+      callback(null, interests);
     },
-    function getNextInterestToDo(err, interests) {
-      if (err) throw err;
+    function getNextInterestToDo(interests, callback) {
 
       // Get first interest, can later be done by priority (e.g. date last updated)
       var curInterest = interests.splice(0,1);
 
       if (curInterest.length)
-        this(null, curInterest[0])
+        callback(null, curInterest[0])
       // Start over if there are no more interests
       else
-        tweetCrawler.run();
+        callback("Couldn't find another interest to run.");
     },
-    function getFollowerIDs(err, interest) {
-      if(err) throw err;
+    function getFollowerIDs(interest, callback) {
 
-      // Build up a group so we get ids of all followers of each topic
-      var group = this.group();
+      async.map(interest.twitter_names, function(twitter_name, callback) {
+        twit.get('/followers/ids.json', {screen_name: twitter_name}, callback);
+      }, callback);
 
-      interest.twitter_names.forEach(function (twitter_name) {
-        twit.get('/followers/ids.json', {screen_name: twitter_name}, group());
-      });
     },
-    function getFollowerLocsFromCache(err, followers) {
-      if (err) throw err;
+    function getCachedFollowersFromDB(followers, callback) {
+      if (!followers.length) callback("Didn't get any followers from twitter.");
 
-      var _this = this;
-      var ids = followers.ids;
+
+      var ids = followers[0].ids.splice(0, LIMIT_USER_SEARCH);
+
 
       // Find all users that we already have stored
-      db.user.find().where('twitter_id').in(ids).populate('location').exec(function(err, results) {
+      db.user.find().where('twitter_id').in(ids).populate('location').exec(function(err, users) {
 
-        // Build up list of cached and uncached
-        var cachedFollowers = [];
-        var uncachedFollowers = [];
+        callback(err, ids, users)
 
-        for (var i = 0; i < results.length; i++) {
-
-          var index = ids.indexOf(results[i].twitter_id);
-
-          // Found, so add its info to cached
-          if (index > 0)
-            cachedFollowers.push({});
-
-        }
-        _this(err, results, followers);
       });
+
     },
-    function getFollowerLocs(err, followers) {
-      if (err) throw err;
-      // If no follower data gained, just move on.  The interest
-      // was removed from the cache so you'll hopefully be requesting a different name
-      if (!followers) tweetCrawler.run();
+    function getListOfCachedIds(ids, cachedUsers, callback) {
 
-      console.log(followers);
+      async.map(cachedUsers, function(user, callback) {
+        callback(null, user.twitter_id);
+      }, function(err, cachedIds){
+        callback(err, ids, cachedUsers, cachedIds);
+      })
 
-      twit.get('/users/lookup.json', {user_id: followers.ids.join()}, this);
+    },
+    function getUncachedIds(ids, cachedUsers, cachedIds, callback) {
+
+      // Loop through all ids, if they aren't in cached, add to uncached list
+      async.reject(ids, function(id, callback) {
+
+        callback(id in cachedIds)
+
+      }, function(uncachedIds) {
+
+        callback(null, uncachedIds, cachedUsers);
+
+      });
+
+    },
+    function getRawUncachedUsers(uncachedIds, cachedUsers) {
+
+      console.log(uncachedIds);
+
+//      twit.get('/users/lookup.json', {user_id: followers.ids.join()}, function(err, u));
     }
 
 
-  )
+  ],
+
+  // Last error handling function
+  // Log error then restart
+  function(err, result) {
+    if (err) console.log(err);
+
+    tweetCrawler.run();
+  });
+
+};
+
+
+// HELPER FUNCTIONS:
+
+//we can use the google maps geolocation api to convert location strings to objects with city, state, and country strings
+//this example functions takes an address and writes an object with the state and city to the console
+function getLocationFromRaw(address, callback) {
+  request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+    var location = {raw: address};
+    if (JSON.parse(body).results.length) {
+    address_components = JSON.parse(body).results[0].address_components;
+    if (address_components){
+      for (var i=0;i<address_components.length;i++) {
+      if (address_components[i].types.indexOf('locality') != -1) {
+        location.city = address_components[i].long_name;
+      } else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
+        location.state = address_components[i].long_name;
+      } else if (address_components[i].types.indexOf('country') != -1) {
+        location.country = address_components[i].long_name;
+      }
+      }
+    }
+    }
+
+    callback(location);
+    }
+  })
 }
 
 
-
-
-
+// Export!
 module.exports = tweetCrawler;

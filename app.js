@@ -96,6 +96,8 @@ function getLocation(address, callback) {
 				location.city = address_components[i].long_name;
 			} else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
 				location.state = address_components[i].long_name;
+			} else if (address_components[i].types.indexOf('country') != -1) {
+				location.country = address_components[i].long_name;
 			}
 		}
 		callback(location);

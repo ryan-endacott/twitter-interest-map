@@ -60,12 +60,23 @@ tweetCrawler.run = function() {
 
       interest.twitter_names.forEach(function (twitter_name) {
         twit.get('/followers/ids.json', {screen_name: twitter_name}, group());
-      })
+      });
+    },
+    function getFollowerLocs(err, followers) {
+      if (err) throw err;
+      // If no follower data gained, just move on.  The interest
+      // was removed from the cache so you'll hopefully be requesting a different name
+      if (!followers) tweetCrawler.run();
+
+      console.log(followers);
+
+      twit.get('/users/lookup.json', {user_id: followers.ids.join()}, this);
     }
 
 
   )
 }
+
 
 
 module.exports = tweetCrawler;

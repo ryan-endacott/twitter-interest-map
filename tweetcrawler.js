@@ -22,12 +22,20 @@ tweetCrawler.run = function() {
       else  
         db.interest.find(this);
     },
-    function getInterestsToCrawl(err, interests) {
+    function cacheInterests(err, interests) {
       if (err) throw err;
 
       cachedInterests = interests;
 
+      this(null, interests);
+    },
+    function getNextInterestToDo(err, interests) {
+      if (err) throw err;
+
+      // Get first interest, can later be done by priority (e.g. date last updated)
+      this(null, interests.splice(0,1))
     }
+
 
   )
 }

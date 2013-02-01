@@ -35,6 +35,12 @@ var locationSchema = new Schema({
 });
 
 
+var userSchema = new Scheam({
+  twitter_id: Number,
+  location: {type: Schema.Types.ObjectId, ref: 'location}
+});
+
+
 // Export models
 
 module.exports = {

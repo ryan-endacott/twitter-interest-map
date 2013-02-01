@@ -86,7 +86,7 @@ function getFollowerLocations(screen_name) {
 
 //we can use the google maps geolocation api to convert location strings to objects with city, state, and country strings
 //this example functions takes an address and writes an object with the state and city to the console
-function getLocation(address) {
+function getLocation(address, callback) {
 	request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
 		var location = {};
@@ -98,8 +98,10 @@ function getLocation(address) {
 				location.state = address_components[i].long_name;
 			}
 		}
-		console.log(location);
+		callback(location);
 	  }
 	})
 }
-getLocation('baltimore');
+getLocation('baltimore', function(location) {
+	console.log(location);
+});

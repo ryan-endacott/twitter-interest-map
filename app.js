@@ -76,11 +76,17 @@ function getFollowers(screen_name) {
 
 function findUser(followers) {
 	followers.forEach(function(follower) {
-		db.user.find({twitter_id:follower.id}, function (err, user) {
-		  if (user) {
+		db.user.find({twitter_id:follower.id}).exec( function (err, user) {
+		  if (user.length) {
 		  
-		  } else {
-			db.user.save({twitter_id:follower.id});
+		  } else { 
+        console.log('should always reach here.')
+
+        addLocationToDB(follower.location, function(err, newLoc) {
+          console.log('line 86');
+          var user = new db.user({twitter_id: follower.id, location: newLoc._id});
+          user.save();
+        })
 		  }
 		});
 	});
@@ -103,15 +109,19 @@ function getLocation(address, callback) {
 	  if (!error && response.statusCode == 200) {
 		var location = {};
 		address_components = JSON.parse(body).results[0].address_components;
-		for (var i=0;i<address_components.length;i++) {
-			if (address_components[i].types.indexOf('locality') != -1) {
-				location.city = address_components[i].long_name;
-			} else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
-				location.state = address_components[i].long_name;
-			} else if (address_components[i].types.indexOf('country') != -1) {
-				location.country = address_components[i].long_name;
-			}
-		}
+    if (address_components){
+      for (var i=0;i<address_components.length;i++) {
+        if (address_components[i].types.indexOf('locality') != -1) {
+          location.city = address_components[i].long_name;
+        } else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
+          location.state = address_components[i].long_name;
+        } else if (address_components[i].types.indexOf('country') != -1) {
+          location.country = address_components[i].long_name;
+        }
+      }
+
+    }
+
 		callback(location);
 	  }
 	})
@@ -119,3 +129,20 @@ function getLocation(address, callback) {
 getLocation('baltimore', function(location) {
 	console.log(location);
 });
+
+
+function addLocationToDB(rawLoc, callback) {
+  console.log('Execution just entered addLocationToDB');
+  db.location.findOne({raw: rawLoc}, function(err, location) {
+    if (!err && location) return;
+    else { // Add location if it didn't exist
+      getLocation(rawLoc, function(location) {
+        var newLoc = new db.location(location);
+        newLoc.save(callback);
+      })
+    }
+  });
+}
+
+
+

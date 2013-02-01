@@ -29,7 +29,15 @@ var interestSchema = new Schema({
 
 
 var locationSchema = new Schema({
-  name: String
+  city: String,
+  state: String,
+  country: String
+});
+
+
+var userSchema = new Scheam({
+  twitter_id: Number,
+  location: {type: Schema.Types.ObjectId, ref: 'location}
 });
 
 

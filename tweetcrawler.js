@@ -97,11 +97,11 @@ tweetCrawler.run = function() {
       });
 
     },
-    function getRawUncachedUsers(uncachedIds, cachedUsers) {
+    function getRawUncachedUsers(uncachedIds, cachedUsers, callback) {
 
-      console.log(uncachedIds);
-
-//      twit.get('/users/lookup.json', {user_id: followers.ids.join()}, function(err, u));
+      twit.get('/users/lookup.json', {user_id: uncachedIds}, function(err, rawUsers) {
+        callback(err, rawUsers, cachedUsers);
+      });
     }
 
 

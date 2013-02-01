@@ -69,17 +69,28 @@ function getFollowers(screen_name) {
           followers.push({location: user.location, uid: user.id});
         }
 	  });
-      console.log('\n"'+ screen_name + '" follower locations:');
-      console.log(followers);
-       // update DB here with the follower locations
-       currentUsername++;
-	   if (currentUsername != twitterUsernames.length) {
-		getFollowers(twitterUsernames[currentUsername]);
-	   } else {
-	     console.log("Done");
-	   }
+      findUser(followers)
 	});
   });
+}
+
+function findUser(followers) {
+	followers.forEach(function(follower) {
+		db.user.find({twitter_id:follower.id}, function (err, user) {
+		  if (user) {
+		  
+		  } else {
+			db.user.save({twitter_id:follower.id});
+		  }
+		});
+	});
+	console.log(followers);
+   currentUsername++;
+   if (currentUsername != twitterUsernames.length) {
+	getFollowers(twitterUsernames[currentUsername]);
+   } else {
+	 console.log("Done");
+   }
 }
 
 //uncomment the following line to query twitter for the folower uid's and locations

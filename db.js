@@ -23,7 +23,9 @@ var interestSchema = new Schema({
   map_data: [{
     location: {type: Schema.Types.ObjectId, ref: 'location'},
     count: Number
-  }]
+  }],
+  
+  updated: {type: Date, default: Date.now}
 
 });
 

@@ -9,6 +9,7 @@ var express = require('express')
   , http = require('http')
   , twitter = require('ntwitter')
   , request = require('request')
+  , db = require('./db')
   , path = require('path');
 
 var app = express();

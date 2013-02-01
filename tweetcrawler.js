@@ -44,7 +44,13 @@ tweetCrawler.run = function() {
       if (err) throw err;
 
       // Get first interest, can later be done by priority (e.g. date last updated)
-      this(null, interests.splice(0,1))
+      var curInterest = interests.splice(0,1);
+
+      if (curInterest.length)
+        this(null, curInterest[0])
+      // Start over if there are no more interests
+      else
+        tweetCrawler.run();
     },
     function getFollowerIDs(err, interest) {
       if(err) throw err;

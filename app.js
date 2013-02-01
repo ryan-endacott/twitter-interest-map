@@ -8,6 +8,7 @@ var express = require('express')
   , user = require('./routes/user')
   , http = require('http')
   , twitter = require('ntwitter')
+  , request = require('request')
   , path = require('path');
 
 var app = express();
@@ -79,4 +80,26 @@ function getFollowerLocations(screen_name) {
 	});
   });
 }
-getFollowerLocations(twitterUsernames[0]);
+
+//uncomment the following line to query twitter for the folower uid's and locations
+//getFollowerLocations(twitterUsernames[0]);
+
+//we can use the google maps geolocation api to convert location strings to objects with city, state, and country strings
+//this example functions takes an address and writes an object with the state and city to the console
+function getLocation(address) {
+	request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		var location = {};
+		address_components = JSON.parse(body).results[0].address_components;
+		for (var i=0;i<address_components.length;i++) {
+			if (address_components[i].types.indexOf('locality') != -1) {
+				location.city = address_components[i].long_name;
+			} else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
+				location.state = address_components[i].long_name;
+			}
+		}
+		console.log(location);
+	  }
+	})
+}
+getLocation('baltimore');

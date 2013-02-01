@@ -49,6 +49,8 @@ var twitterUsernames = ['nodejs', 'google'];
 var LIMIT_USER_SEARCH = 100;
 var currentUsername = 0;
 
+var numbers = /[0-9]/; //prevent numbers from being in one of the locations
+
 function getFollowerLocations(screen_name) {
   var follower_locations = [];
   twit.get('/followers/ids.json', {screen_name: screen_name}, function(err, data) {
@@ -60,9 +62,8 @@ function getFollowerLocations(screen_name) {
     twit.get('/users/lookup.json', {user_id: data.ids.join()}, function(err, users) {
       if (err) console.log(err);
       if (!users) return;
-	  //console.log(users);
 	  users.forEach(function(user) {
-        if (user && user.location && (blacklist.indexOf(user.location) == -1 )) {
+        if (user && user.location && (blacklist.indexOf(user.location) == -1 ) && !numbers.test(user.location)) {
           follower_locations.push(user.location);
         }
 	  });

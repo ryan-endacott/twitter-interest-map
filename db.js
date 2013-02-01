@@ -29,7 +29,9 @@ var interestSchema = new Schema({
 
 
 var locationSchema = new Schema({
-  name: String
+  city: String,
+  state: String,
+  country: String
 });
 
 

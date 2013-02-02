@@ -125,10 +125,11 @@ tweetCrawler.run = function() {
         callback(err, users);
       });
     },
-    function weshouldnowhaveallusers(users) {
+    function weshouldnowhaveallusers(users, callback) {
       console.log('LOGGING ALL USERS:');
       console.log(users);
       console.log('Done with an interest!');
+      callback(null);
     }
 
 
@@ -165,14 +166,14 @@ function saveRawUser(rawUser, callback) {
 
     // Check database for location
     function checkDBForLoc(callback) {
-      db.location.find({raw: rawUser.location}, function(err, loc) {
+      db.location.findOne({raw: rawUser.location}, function(err, loc) {
         callback(err, loc, rawUser);
       });
     },
     function getValidLoc(loc, rawUser, callback) {
 
       // Found so continue
-      if (loc.raw) callback(null, loc, rawUser);
+      if (loc) callback(null, loc, rawUser);
       // Didn't find, so create from raw and store in db
       else {
         getLocationFromRaw(rawUser.location, function(err, loc) {

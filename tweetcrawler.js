@@ -120,18 +120,15 @@ tweetCrawler.run = function() {
       async.map(rawUsers, function(rawUser, callback) {
         saveRawUser(rawUser, callback);
       }, function(err, newUsers) {
+        // Combine all users
         var users = newUsers.concat(cachedUsers);
-        console.log('new users are :');
-        console.log(newUsers);
-        console.log('cached users are: ');
-        console.log(cachedUsers);
         callback(err, users);
       });
     },
     function weshouldnowhaveallusers(users) {
       console.log('LOGGING ALL USERS:');
-      //console.log(users);
-      console.log('done');
+      console.log(users);
+      console.log('Done with an interest!');
     }
 
 

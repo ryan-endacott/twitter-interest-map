@@ -3,7 +3,8 @@
 
 var async = require('async'),
   db = require('./db'),
-  twitter = require('ntwitter');
+  twitter = require('ntwitter'),
+  request = require('request');
 
 
 
@@ -17,7 +18,11 @@ var twit = new twitter({
   access_token_secret: 'rrqAlFwbWa86KideKwOxlGjtPmPEuP7TR623ivOc'
 });
 
+
+
 var LIMIT_USER_SEARCH = 100;
+var times_run = 0;
+var MAX_TIMES_RUN = 5;
 
 // Global variables to hold stuff to keep from
 // checking database if we already have
@@ -26,6 +31,7 @@ var cachedInterests;
 tweetCrawler.run = function() {
 
   console.log('Starting another tweetCrawler.run()');
+  times_run++;
 
   async.waterfall([
 
@@ -97,11 +103,35 @@ tweetCrawler.run = function() {
       });
 
     },
-    function getRawUncachedUsers(uncachedIds, cachedUsers, callback) {
+    function determineRawUncachedUsers(uncachedIds, cachedUsers, callback) {
 
-      twit.get('/users/lookup.json', {user_id: uncachedIds}, function(err, rawUsers) {
-        callback(err, rawUsers, cachedUsers);
+      twit.get('/users/lookup.json', {user_id: uncachedIds.join()}, function(err, rawUsers) {
+
+        // Remove users without a location given
+        async.filter(rawUsers, function(rawUser, callback) {
+          callback(rawUser.location);
+        }, function(rawUsers) {
+          callback(err, rawUsers, cachedUsers);
+        });
       });
+    },
+    function getRawUncachedUsers(rawUsers, cachedUsers, callback) {
+
+      async.map(rawUsers, function(rawUser, callback) {
+        saveRawUser(rawUser, callback);
+      }, function(err, newUsers) {
+        var users = newUsers.concat(cachedUsers);
+        console.log('new users are :');
+        console.log(newUsers);
+        console.log('cached users are: ');
+        console.log(cachedUsers);
+        callback(err, users);
+      });
+    },
+    function weshouldnowhaveallusers(users) {
+      console.log('LOGGING ALL USERS:');
+      //console.log(users);
+      console.log('done');
     }
 
 
@@ -110,9 +140,18 @@ tweetCrawler.run = function() {
   // Last error handling function
   // Log error then restart
   function(err, result) {
-    if (err) console.log(err);
+    if (err){
+      console.log(err);
 
-    tweetCrawler.run();
+      // print stack trace if it's not a string, thus a real error
+      if (typeof(err) !== 'string') {
+        console.log(err.stack);
+        console.trace();
+      }
+   }
+
+    if (times_run < MAX_TIMES_RUN)
+      tweetCrawler.run();
   });
 
 };
@@ -120,12 +159,64 @@ tweetCrawler.run = function() {
 
 // HELPER FUNCTIONS:
 
+// Completely handles a raw user from twitter:
+// 1. Saves its formatted location to db (checking if cached first)
+// 2. Saves user to database, then calls callback with (err, newUser)
+function saveRawUser(rawUser, callback) {
+
+  async.waterfall([
+
+    // Check database for location
+    function checkDBForLoc(callback) {
+      db.location.find({raw: rawUser.location}, function(err, loc) {
+        callback(err, loc, rawUser);
+      });
+    },
+    function getValidLoc(loc, rawUser, callback) {
+
+      // Found so continue
+      if (loc.raw) callback(null, loc, rawUser);
+      // Didn't find, so create from raw and store in db
+      else {
+        getLocationFromRaw(rawUser.location, function(err, loc) {
+          db.location.create(loc, function(err, loc) {
+            callback(err, loc, rawUser);
+          });
+        });
+      }
+
+    },
+    function createNewUser(loc, rawUser, callback) {
+
+      db.user.create({twitter_id: rawUser.id, location: loc}, function(err, newUser) {
+
+        // newUser has lost his location ref here, so re add it
+        // This is a hacky solution that adds it by populating from database
+        // We shouldn't need to go back to database, because location is just loc from above
+        // However, if you do `newUser.location = loc` it only assigns the objectId.  
+        // So this is a temporary workaround
+        db.user.findOne(newUser).populate('location').exec(callback);
+
+      });
+    }
+    ],
+    function doCallback(err, user) {
+      // Do the main callback with result as the user
+      callback(err, user);
+    })
+  
+
+};
+
+
+
 //we can use the google maps geolocation api to convert location strings to objects with city, state, and country strings
 //this example functions takes an address and writes an object with the state and city to the console
 function getLocationFromRaw(address, callback) {
   request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
+
     var location = {raw: address};
+    if (!error && response.statusCode == 200) {
     if (JSON.parse(body).results.length) {
     address_components = JSON.parse(body).results[0].address_components;
     if (address_components){
@@ -141,8 +232,12 @@ function getLocationFromRaw(address, callback) {
     }
     }
 
-    callback(location);
     }
+
+
+    callback(null, location);
+
+
   })
 }
 

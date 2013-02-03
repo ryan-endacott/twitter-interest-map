@@ -30,7 +30,7 @@ var cachedInterests;
 
 tweetCrawler.run = function() {
 
-  console.log('Starting another tweetCrawler.run()');
+  console.log('\n\nStarting another tweetCrawler.run()');
   times_run++;
 
   async.waterfall([
@@ -211,29 +211,47 @@ function saveRawUser(rawUser, callback) {
 //we can use the google maps geolocation api to convert location strings to objects with city, state, and country strings
 //this example functions takes an address and writes an object with the state and city to the console
 function getLocationFromRaw(address, callback) {
+
   request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
 
-    var location = {raw: address};
-    if (!error && response.statusCode == 200) {
-    if (JSON.parse(body).results.length) {
-    address_components = JSON.parse(body).results[0].address_components;
-    if (address_components){
-      for (var i=0;i<address_components.length;i++) {
-      if (address_components[i].types.indexOf('locality') != -1) {
-        location.city = address_components[i].long_name;
-      } else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
-        location.state = address_components[i].long_name;
-      } else if (address_components[i].types.indexOf('country') != -1) {
-        location.country = address_components[i].long_name;
+    var body = JSON.parse(body);
+    
+    // If google has throttled us, try again in two seconds
+    if (body.status == 'OVER_QUERY_LIMIT') {
+      setTimeout(function() {
+        getLocationFromRaw(address, callback)
+      }, 2000);
+    }
+     
+    else {
+
+      var location = {raw: address};
+      if (!error && response.statusCode == 200) {
+        if (body.results.length) {
+          address_components = body.results[0].address_components;
+          if (address_components){
+            for (var i=0;i<address_components.length;i++) {
+              if (address_components[i].types.indexOf('locality') != -1) {
+                location.city = address_components[i].long_name;
+              } else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
+                location.state = address_components[i].long_name;
+              } else if (address_components[i].types.indexOf('country') != -1) {
+                location.country = address_components[i].long_name;
+              }
+            }
+          }
+        }
+
       }
-      }
-    }
-    }
+
+
+      callback(null, location);
+
+
 
     }
 
 
-    callback(null, location);
 
 
   })

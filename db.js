@@ -40,7 +40,8 @@ var locationSchema = new Schema({
 
 var userSchema = new Schema({
   twitter_id: Number,
-  location: {type: Schema.Types.ObjectId, ref: 'location'}
+  location: {type: Schema.Types.ObjectId, ref: 'location'},
+  interests: [{type: Schema.Types.ObjectId, ref: 'interest'}]
 });
 
 

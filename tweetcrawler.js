@@ -27,8 +27,10 @@ var MAX_TIMES_RUN = 5;
 // Global variables to hold stuff to keep from
 // checking database if we already have
 var cachedInterests;
+var curInterest;
 
 tweetCrawler.run = function() {
+
 
   console.log('\n\nStarting another tweetCrawler.run()');
   times_run++;
@@ -50,7 +52,7 @@ tweetCrawler.run = function() {
     function getNextInterestToDo(interests, callback) {
 
       // Get first interest, can later be done by priority (e.g. date last updated)
-      var curInterest = interests.splice(0,1);
+      curInterest = interests.splice(0,1);
 
       if (curInterest.length)
         callback(null, curInterest[0])
@@ -125,9 +127,19 @@ tweetCrawler.run = function() {
         callback(err, users);
       });
     },
-    function weshouldnowhaveallusers(users, callback) {
-      console.log('LOGGING ALL USERS:');
-      console.log(users);
+    function convert_users_to_uids(users, callback) {//There should be a better way to do this, such as just pass in the array of users to the db call, but I can't find out how to do this.
+      //console.log('LOGGING ALL USERS:');
+      //console.log(users);
+      async.map(users, function(user, callback) {
+        callback(null, user._id);
+      }, function(err, uids){
+        callback(err, uids);
+      });  
+    }, function update_users_with_interest(uids, callback) {
+      db.user.update({ _id: { $in: uids }}, { $addToSet: { interests: curInterest[0]._id }}, {multi: true}, function(err){ //$addToSet will only add the interest id if it is not already in the array
+        callback(err);
+      });
+    }, function(callback) {
       console.log('Done with an interest!');
       callback(null);
     }

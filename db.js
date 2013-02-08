@@ -19,14 +19,8 @@ var interestSchema = new Schema({
 
     // Get the locations by calling:
     // db.interest.findOne().populate('map_data.location').exec(
-    // function(err, result) {});
-  map_data: [{
-    location: {type: Schema.Types.ObjectId, ref: 'location'},
-    count: Number
-  }],
-  
+    // function(err, result) {});  
   updated: {type: Date, default: Date.now}
-
 });
 
 
@@ -44,12 +38,19 @@ var userSchema = new Schema({
   interests: [{type: Schema.Types.ObjectId, ref: 'interest'}]
 });
 
+var interestLocationsSchema = new Schema({
+  interest: {type: Schema.Types.ObjectId, ref: 'interest'},
+  location: {type: Schema.Types.ObjectId, ref: 'location'},
+  count: Number
+});
+
 
 // Export models
 
 module.exports = {
   interest: mongoose.model('interest', interestSchema),
   location: mongoose.model('location', locationSchema),
+  interest_locations: mongoose.model('interest_locations', interestLocationsSchema),
   user: mongoose.model('user', userSchema)
 };
 

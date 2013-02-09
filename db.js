@@ -41,9 +41,8 @@ var userSchema = new Schema({
 var interestLocationsSchema = new Schema({
   interest: {type: Schema.Types.ObjectId, ref: 'interest'},
   location: {type: Schema.Types.ObjectId, ref: 'location'},
-  count: Number
+  count: {type: Number, default: 1 }
 });
-
 
 // Export models
 

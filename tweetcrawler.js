@@ -127,6 +127,36 @@ tweetCrawler.run = function() {
         callback(err, users);
       });
     },
+    function remove_previously_counted_users(users, callback) {
+      console.log("Before remove_previously_counted_users() user count = %d", users.length);
+      async.rejectSeries(users,function(user, callback) {
+        callback(user.interests.indexOf(curInterest[0]._id)!=-1);
+      }, function(users) {  
+        callback(null, users);
+      });
+    },
+    function update_location_counts(users, callback) {
+      console.log("After remove_previously_counted_users() user count = %d", users.length);
+      async.forEach(users, function(user, callback) {
+        db.interest_locations.findOne({ location: user.location._id, interest: curInterest[0]._id}, function (err, row) {
+            if (row) {
+               row.count++;
+               row.save(function(err) {
+                 callback(err);
+               });
+            } else {
+              var new_interest_location_row = new db.interest_locations({location: user.location._id, interest: curInterest[0]._id});
+              new_interest_location_row.save(function(err) {
+                 callback(err);
+               });
+            }
+            //console.log(row);
+            callback(err, users);
+        });
+      }, function(err){
+        callback(err, users);
+      });
+    },
     function convert_users_to_uids(users, callback) {//There should be a better way to do this, such as just pass in the array of users to the db call, but I can't find out how to do this.
       //console.log('LOGGING ALL USERS:');
       //console.log(users);
@@ -268,7 +298,6 @@ function getLocationFromRaw(address, callback) {
 
   })
 }
-
 
 // Export!
 module.exports = tweetCrawler;

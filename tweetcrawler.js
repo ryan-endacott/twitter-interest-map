@@ -94,9 +94,10 @@ tweetCrawler.run = function() {
     function getUncachedIds(ids, cachedUsers, cachedIds, callback) {
 
       // Loop through all ids, if they aren't in cached, add to uncached list
-      async.reject(ids, function(id, callback) {
+      async.filter(ids, function(id, callback) {
 
-        callback(id in cachedIds)
+        var index = cachedIds.indexOf(id)
+        callback(index == -1)
 
       }, function(uncachedIds) {
 

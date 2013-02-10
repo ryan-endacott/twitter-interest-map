@@ -40,7 +40,9 @@ var userSchema = new Schema({
 
 var interestLocationsSchema = new Schema({
   interest: {type: Schema.Types.ObjectId, ref: 'interest'},
-  location: {type: Schema.Types.ObjectId, ref: 'location'},
+  type: String,
+  location: String,
+  location_parent: String,
   count: {type: Number, default: 1 }
 });
 

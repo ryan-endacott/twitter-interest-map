@@ -138,14 +138,14 @@ tweetCrawler.run = function() {
     function update_location_counts(users, callback) {
       console.log("After remove_previously_counted_users() user count = %d", users.length);
       async.forEach(users, function(user, callback) {
-        db.interest_locations.findOne({ location: user.location._id, interest: curInterest[0]._id}, function (err, row) {
+        db.interest_locations.findOne({ type: 'country', location: user.location.country, interest: curInterest[0]._id}, function (err, row) {
             if (row) {
                row.count++;
                row.save(function(err) {
                  callback(err);
                });
             } else {
-              var new_interest_location_row = new db.interest_locations({location: user.location._id, interest: curInterest[0]._id});
+              var new_interest_location_row = new db.interest_locations({type: 'country', location: user.location.country, interest: curInterest[0]._id});
               new_interest_location_row.save(function(err) {
                  callback(err);
                });

@@ -135,9 +135,9 @@ tweetCrawler.run = function() {
         callback(null, users);
       });
     },
-    function update_location_counts(users, callback) {
+    function update_location_country_counts(users, callback) {
       console.log("After remove_previously_counted_users() user count = %d", users.length);
-      async.forEach(users, function(user, callback) {
+      async.forEachSeries(users, function(user, callback) {
         db.interest_locations.findOne({ type: 'country', location: user.location.country, interest: curInterest[0]._id}, function (err, row) {
             if (row) {
                row.count++;
@@ -150,8 +150,44 @@ tweetCrawler.run = function() {
                  callback(err);
                });
             }
-            //console.log(row);
-            callback(err, users);
+        });
+      }, function(err){
+        callback(err, users);
+      });
+    },
+    function update_location_state_counts(users, callback) {
+      async.forEachSeries(users, function(user, callback) {
+        db.interest_locations.findOne({ type: 'state', location_parent: user.location.country, location: user.location.state, interest: curInterest[0]._id}, function (err, row) {
+            if (row) {
+               row.count++;
+               row.save(function(err) {
+                 callback(err);
+               });
+            } else {
+              var new_interest_location_row = new db.interest_locations({type: 'state', location_parent: user.location.country, location: user.location.state, interest: curInterest[0]._id});
+              new_interest_location_row.save(function(err) {
+                 callback(err);
+               });
+            }
+        });
+      }, function(err){
+        callback(err, users);
+      });
+    },
+    function update_location_city_counts(users, callback) {
+      async.forEachSeries(users, function(user, callback) {
+        db.interest_locations.findOne({ type: 'city', location: user.location.city, location_parent: user.location.state, interest: curInterest[0]._id}, function (err, row) {
+            if (row) {
+               row.count++;
+               row.save(function(err) {
+                 callback(err);
+               });
+            } else {
+              var new_interest_location_row = new db.interest_locations({type: 'city', location_parent: user.location.state, location: user.location.city, interest: curInterest[0]._id});
+              new_interest_location_row.save(function(err) {
+                 callback(err);
+               });
+            }
         });
       }, function(err){
         callback(err, users);

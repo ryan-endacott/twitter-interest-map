@@ -71,7 +71,7 @@ tweetCrawler.run = function() {
       if (!followers.length) callback("Didn't get any followers from twitter.");
 
 
-      var ids = followers[0].ids.splice(0, LIMIT_USER_SEARCH);
+      var ids = followers[0].ids;
 
 
       // Find all users that we already have stored
@@ -108,7 +108,21 @@ tweetCrawler.run = function() {
     },
     function determineRawUncachedUsers(uncachedIds, cachedUsers, callback) {
 
-      twit.get('/users/lookup.json', {user_id: uncachedIds.join()}, function(err, rawUsers) {
+      // Chunk the ids into groups of 100 for twitter api limit
+      var i, j, chunk = LIMIT_USER_SEARCH;
+      var chunkedIds = [];
+      for (i=0,j=uncachedIds.length; i<j; i+=chunk) {
+          chunkedIds.push(uncachedIds.slice(i,i+chunk));
+      }
+
+      // Call the twitter api in chunks of 100 then combine results to be handled
+      async.concat(chunkedIds, function(ids, callback) {
+
+        twit.get('/users/lookup.json', {user_id: ids.join()}, callback);
+
+      }, function(err, rawUsers) {
+        if (err)
+          console.log('Error from twitter API /users/lookup');
 
         // Remove users without a location given
         async.filter(rawUsers, function(rawUser, callback) {
@@ -116,7 +130,9 @@ tweetCrawler.run = function() {
         }, function(rawUsers) {
           callback(err, rawUsers, cachedUsers);
         });
+
       });
+
     },
     function getRawUncachedUsers(rawUsers, cachedUsers, callback) {
 
@@ -130,7 +146,7 @@ tweetCrawler.run = function() {
     },
     function remove_previously_counted_users(users, callback) {
       console.log("Before remove_previously_counted_users() user count = %d", users.length);
-      async.rejectSeries(users,function(user, callback) {
+      async.reject(users,function(user, callback) {
         callback(user.interests.indexOf(curInterest[0]._id)!=-1);
       }, function(users) {  
         callback(null, users);

@@ -203,14 +203,14 @@ tweetCrawler.run = function() {
     function update_location_city_counts(users, callback) {
       async.forEachSeries(users, function(user, callback) {
         if (user.location.city) {
-          db.interest_locations.findOne({ type: 'city', location: user.location.city, location_parent: user.location.state, interest: curInterest[0]._id}, function (err, row) {
+          var location_parent = user.location.country_short + '-' + user.location.state_short
+          db.interest_locations.findOne({ type: 'city', location: user.location.city, location_parent: location_parent, interest: curInterest[0]._id}, function (err, row) {
               if (row) {
                  row.count++;
                  row.save(function(err) {
                    callback(err);
                  });
               } else {
-                var location_parent = user.location.country_short + '-' + user.location.state_short
                 var new_interest_location_row = new db.interest_locations({type: 'city', location_parent: location_parent, location: user.location.city, interest: curInterest[0]._id});
                 new_interest_location_row.save(function(err) {
                    callback(err);

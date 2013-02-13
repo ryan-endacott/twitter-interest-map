@@ -19,7 +19,7 @@ var twit = new twitter({
 });
 
 
-
+var stats = {};
 var LIMIT_USER_SEARCH = 100;
 var times_run = 0;
 var MAX_TIMES_RUN = 5;
@@ -69,10 +69,9 @@ tweetCrawler.run = function() {
     },
     function getCachedFollowersFromDB(followers, callback) {
       if (!followers.length) callback("Didn't get any followers from twitter.");
-
-
       var ids = followers[0].ids;
 
+      stats.retrievedFollowers = ids.length;
 
       // Find all users that we already have stored
       db.user.find().where('twitter_id').in(ids).populate('location').exec(function(err, users) {
@@ -83,7 +82,7 @@ tweetCrawler.run = function() {
 
     },
     function getListOfCachedIds(ids, cachedUsers, callback) {
-
+      stats.cachedUsers = cachedUsers.length;
       async.map(cachedUsers, function(user, callback) {
         callback(null, user.twitter_id);
       }, function(err, cachedIds){
@@ -135,17 +134,18 @@ tweetCrawler.run = function() {
 
     },
     function getRawUncachedUsers(rawUsers, cachedUsers, callback) {
-
+      stats.newUsers = rawUsers.length;
       async.map(rawUsers, function(rawUser, callback) {
         saveRawUser(rawUser, callback);
       }, function(err, newUsers) {
         // Combine all users
         var users = newUsers.concat(cachedUsers);
+        
         callback(err, users);
       });
     },
     function remove_previously_counted_users(users, callback) {
-      console.log("Before remove_previously_counted_users() user count = %d", users.length);
+      stats.before_previously_counted = users.length;
       async.reject(users,function(user, callback) {
         callback(user.interests.indexOf(curInterest[0]._id)!=-1);
       }, function(users) {  
@@ -153,7 +153,8 @@ tweetCrawler.run = function() {
       });
     },
     function update_location_country_counts(users, callback) {
-      console.log("After remove_previously_counted_users() user count = %d", users.length);
+    stats.after_previously_counted = users.length;
+    console.log(stats);
       async.forEachSeries(users, function(user, callback) {
         if (user.location.country) {  //wait, how did we get this far if the user doesn't have a country? #bug
           db.interest_locations.findOne({ type: 'country', location: user.location.country, interest: curInterest[0]._id}, function (err, row) {
@@ -235,6 +236,7 @@ tweetCrawler.run = function() {
         callback(err);
       });
     }, function(callback) {
+      //send stat object to separate app
       console.log('Done with an interest!');
       callback(null);
     }
@@ -320,7 +322,6 @@ function saveRawUser(rawUser, callback) {
 function getLocationFromRaw(address, callback) {
 
   request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
-
     var body = JSON.parse(body);
     
     // If google has throttled us, try again in two seconds

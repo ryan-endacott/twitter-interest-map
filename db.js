@@ -28,7 +28,9 @@ var locationSchema = new Schema({
   raw: String,
   city: String,
   state: String,
-  country: String
+  country: String,
+  state_short: String,
+  country_short: String,
 });
 
 
@@ -42,6 +44,7 @@ var interestLocationsSchema = new Schema({
   interest: {type: Schema.Types.ObjectId, ref: 'interest'},
   type: String,
   location: String,
+  location_short: String,
   location_parent: String,
   count: {type: Number, default: 1 }
 });

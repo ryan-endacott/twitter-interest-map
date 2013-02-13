@@ -163,7 +163,7 @@ tweetCrawler.run = function() {
                    callback(err);
                  });
               } else {
-                var new_interest_location_row = new db.interest_locations({type: 'country', location: user.location.country, interest: curInterest[0]._id});
+                var new_interest_location_row = new db.interest_locations({type: 'country', location_short: user.location.country_short, location: user.location.country, interest: curInterest[0]._id});
                 new_interest_location_row.save(function(err) {
                    callback(err);
                  });
@@ -179,14 +179,15 @@ tweetCrawler.run = function() {
     function update_location_state_counts(users, callback) {
       async.forEachSeries(users, function(user, callback) {
         if (user.location.state) {
-          db.interest_locations.findOne({ type: 'state', location_parent: user.location.country, location: user.location.state, interest: curInterest[0]._id}, function (err, row) {
+          db.interest_locations.findOne({ type: 'state', location_parent: user.location.country_short, location: user.location.state, interest: curInterest[0]._id}, function (err, row) {
               if (row) {
                  row.count++;
                  row.save(function(err) {
                    callback(err);
                  });
               } else {
-                var new_interest_location_row = new db.interest_locations({type: 'state', location_parent: user.location.country, location: user.location.state, interest: curInterest[0]._id});
+                if (user.location.country_short) var location_short = user.location.country_short + '-' + user.location.state_short
+                var new_interest_location_row = new db.interest_locations({type: 'state', location_short: location_short, location_parent: user.location.country, location: user.location.state, interest: curInterest[0]._id});
                 new_interest_location_row.save(function(err) {
                    callback(err);
                  });
@@ -321,7 +322,7 @@ function getLocationFromRaw(address, callback) {
 
   request({url: 'http://maps.googleapis.com/maps/api/geocode/json', qs: {address:address, sensor: false}}, function (error, response, body) {
 
-    var body = JSON.parse(body);
+    body = JSON.parse(body);
     
     // If google has throttled us, try again in two seconds
     if (body.status == 'OVER_QUERY_LIMIT') {
@@ -335,15 +336,17 @@ function getLocationFromRaw(address, callback) {
       var location = {raw: address};
       if (!error && response.statusCode == 200) {
         if (body.results.length) {
-          address_components = body.results[0].address_components;
+          var address_components = body.results[0].address_components
           if (address_components){
             for (var i=0;i<address_components.length;i++) {
               if (address_components[i].types.indexOf('locality') != -1) {
                 location.city = address_components[i].long_name;
               } else if (address_components[i].types.indexOf('administrative_area_level_1') != -1) {
                 location.state = address_components[i].long_name;
+                location.state_short = address_components[i].short_name
               } else if (address_components[i].types.indexOf('country') != -1) {
                 location.country = address_components[i].long_name;
+                location.country_short = address_components[i].short_name
               }
             }
           }

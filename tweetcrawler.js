@@ -187,8 +187,7 @@ tweetCrawler.run = function() {
                    callback(err);
                  });
               } else {
-                if (user.location.country_short) var location_short = user.location.country_short + '-' + user.location.state_short
-                var new_interest_location_row = new db.interest_locations({type: 'state', location_short: location_short, location_parent: user.location.country_short, location: user.location.state, interest: curInterest[0]._id});
+                var new_interest_location_row = new db.interest_locations({type: 'state', location_parent: user.location.country_short, location: user.location.state, interest: curInterest[0]._id});
                 new_interest_location_row.save(function(err) {
                    callback(err);
                  });
@@ -211,7 +210,8 @@ tweetCrawler.run = function() {
                    callback(err);
                  });
               } else {
-                var new_interest_location_row = new db.interest_locations({type: 'city', location_parent: user.location.state, location: user.location.city, interest: curInterest[0]._id});
+                var location_parent = user.location.country_short + '-' + user.location.state_short
+                var new_interest_location_row = new db.interest_locations({type: 'city', location_parent: location_parent, location: user.location.city, interest: curInterest[0]._id});
                 new_interest_location_row.save(function(err) {
                    callback(err);
                  });

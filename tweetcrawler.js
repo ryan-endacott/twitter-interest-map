@@ -38,6 +38,7 @@ tweetCrawler.run = function() {
   async.waterfall([
 
     function getInterestsToCrawl(callback) {
+      stats.startTime = new Date();
       if (cachedInterests) 
         callback(null, cachedInterests);
       else  
@@ -154,7 +155,6 @@ tweetCrawler.run = function() {
     },
     function update_location_country_counts(users, callback) {
     stats.after_previously_counted = users.length;
-    console.log(stats);
       async.forEachSeries(users, function(user, callback) {
         if (user.location.country) {  //wait, how did we get this far if the user doesn't have a country? #bug
           db.interest_locations.findOne({ type: 'country', location: user.location.country, interest: curInterest[0]._id}, function (err, row) {
@@ -237,6 +237,8 @@ tweetCrawler.run = function() {
         callback(err);
       });
     }, function(callback) {
+       stats.endTime = new Date();
+       console.log(stats);
       //send stat object to separate app
       console.log('Done with an interest!');
       callback(null);

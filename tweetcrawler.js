@@ -203,7 +203,11 @@ tweetCrawler.run = function() {
     function update_location_city_counts(users, callback) {
       async.forEachSeries(users, function(user, callback) {
         if (user.location.city) {
-          var location_parent = user.location.country_short + '-' + user.location.state_short
+          if (user.location.country_short == 'US') {
+            var location_parent = user.location.country_short + '-' + user.location.state_short
+          } else {
+            var location_parent = user.location.country_short
+          }
           db.interest_locations.findOne({ type: 'city', location: user.location.city, location_parent: location_parent, interest: curInterest[0]._id}, function (err, row) {
               if (row) {
                  row.count++;

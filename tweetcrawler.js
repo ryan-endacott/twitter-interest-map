@@ -19,7 +19,7 @@ var twit = new twitter({
 });
 
 
-var stats = {};
+var stats = new db.stat();
 var LIMIT_USER_SEARCH = 100;
 var times_run = 0;
 var MAX_TIMES_RUN = 5;
@@ -38,6 +38,11 @@ tweetCrawler.run = function() {
   async.waterfall([
 
     function getInterestsToCrawl(callback) {
+
+      // Reset stats to new
+      stats = new db.stat();
+      stats.start_time = new Date().getTime();
+
       if (cachedInterests) 
         callback(null, cachedInterests);
       else  
@@ -76,7 +81,7 @@ tweetCrawler.run = function() {
     },
     function getCachedFollowersFromDB(ids, callback) {
 
-      stats.retrievedFollowers = ids.length;
+      stats.retrieved_followers = ids.length;
 
       // Find all users that we already have stored
       db.user.find().where('twitter_id').in(ids).populate('location').exec(function(err, users) {
@@ -87,7 +92,7 @@ tweetCrawler.run = function() {
 
     },
     function getListOfCachedIds(ids, cachedUsers, callback) {
-      stats.cachedUsers = cachedUsers.length;
+      stats.cached_users = cachedUsers.length;
       async.map(cachedUsers, function(user, callback) {
         callback(null, user.twitter_id);
       }, function(err, cachedIds){
@@ -139,7 +144,7 @@ tweetCrawler.run = function() {
 
     },
     function getRawUncachedUsers(rawUsers, cachedUsers, callback) {
-      stats.newUsers = rawUsers.length;
+      stats.new_uncached_users = rawUsers.length;
       async.map(rawUsers, function(rawUser, callback) {
         saveRawUser(rawUser, callback);
       }, function(err, newUsers) {
@@ -150,7 +155,7 @@ tweetCrawler.run = function() {
       });
     },
     function remove_previously_counted_users(users, callback) {
-      stats.before_previously_counted = users.length;
+      stats.before_remove_prev_counted = users.length;
       async.reject(users,function(user, callback) {
         callback(user.interests.indexOf(curInterest[0]._id)!=-1);
       }, function(users) {  
@@ -158,8 +163,7 @@ tweetCrawler.run = function() {
       });
     },
     function update_location_country_counts(users, callback) {
-    stats.after_previously_counted = users.length;
-    console.log(stats);
+      stats.after_remove_prev_counted = users.length;
       async.forEachSeries(users, function(user, callback) {
         if (user.location.country) {  //wait, how did we get this far if the user doesn't have a country? #bug
           db.interest_locations.findOne({ type: 'country', location: user.location.country, interest: curInterest[0]._id}, function (err, row) {
@@ -253,15 +257,30 @@ tweetCrawler.run = function() {
   // Last error handling function
   // Log error then restart
   function(err, result) {
+
+
+    // save stats
+    stats.end_time = new Date().getTime();
+    stats.time_to_run = (stats.end_time - stats.start_time) / 1000;
+
+
     if (err){
+
+      var errIsString = (typeof(err) === 'string')
+
+      stats.error_message = errIsString? err : (err.name + ': ' + err.message);
       console.log(err);
 
       // print stack trace if it's not a string, thus a real error
-      if (typeof(err) !== 'string') {
+      if (!errIsString) {
         console.log(err.stack);
         console.trace();
       }
-   }
+    }
+
+
+    stats.save();
+
 
     if (times_run < MAX_TIMES_RUN)
       tweetCrawler.run();

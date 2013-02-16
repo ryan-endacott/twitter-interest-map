@@ -49,13 +49,28 @@ var interestLocationsSchema = new Schema({
   count: {type: Number, default: 1 }
 });
 
+
+var statSchema = new Schema({
+  retrieved_followers: Number,
+  cached_users: Number,
+  new_uncached_users: Number,
+  before_remove_prev_counted: Number,
+  after_remove_prev_counted: Number,
+  start_time: Number,
+  end_time: Number,
+  time_to_run: Number,
+
+  error_message: String
+});
+
 // Export models
 
 module.exports = {
   interest: mongoose.model('interest', interestSchema),
   location: mongoose.model('location', locationSchema),
   interest_locations: mongoose.model('interest_locations', interestLocationsSchema),
-  user: mongoose.model('user', userSchema)
+  user: mongoose.model('user', userSchema),
+  stat: mongoose.model('stat', statSchema)
 };
 
 

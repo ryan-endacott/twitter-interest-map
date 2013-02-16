@@ -67,9 +67,14 @@ tweetCrawler.run = function() {
       }, callback);
 
     },
-    function getCachedFollowersFromDB(followers, callback) {
+    function combineFollowerIds(followers, callback) {
       if (!followers.length) callback("Didn't get any followers from twitter.");
-      var ids = followers[0].ids;
+
+      async.concat(followers, function(follower, callback) {
+        callback(null, follower.ids);
+      }, callback);
+    },
+    function getCachedFollowersFromDB(ids, callback) {
 
       stats.retrievedFollowers = ids.length;
 

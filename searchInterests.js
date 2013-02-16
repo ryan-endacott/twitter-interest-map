@@ -41,10 +41,11 @@ async.waterfall([
   }
 ], function(err) {
   if (err) console.log(err)
-  if (currentInterest < interests.length - 1) {
-    currentInterest++;
+  currentInterest++;
+  if (currentInterest < interests.length) {
     findTwitterUsers()
-  }
+  } else
+    process.exit();
  });
 }
 findTwitterUsers();

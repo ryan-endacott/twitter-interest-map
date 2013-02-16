@@ -8,7 +8,7 @@ var twit = new twitter({
   access_token_secret: 'rrqAlFwbWa86KideKwOxlGjtPmPEuP7TR623ivOc'
 })
 var completed_interests = [] //array of screen_name arrays
-var interests = ['node js', 'CNN']
+var interests = ['comedy', 'CNN']
 var currentInterest = 0
 var findTwitterUsers = function() {
 async.waterfall([
@@ -20,7 +20,7 @@ async.waterfall([
       callback(err, data)
     });
   }, function(users, callback) {
-      async.map(users.splice(0,7), function(user, callback) {
+      async.map(users.splice(0,4), function(user, callback) {
         callback(null, user.screen_name);
       }, function(err, screen_names){
         callback(null, screen_names)
@@ -29,8 +29,17 @@ async.waterfall([
     console.log("Top twitter users for the interest '" + interests[currentInterest]+"'");
     console.log(screen_names);
     callback(null, screen_names)
+  }, function (screen_names, callback) {
+     db.interest.findOne({ name: interests[currentInterest]}, function (err, interest) {
+      if (!interest) {
+        var new_interest = new db.interest({name: interests[currentInterest], twitter_names: screen_names});
+        new_interest.save(callback);
+      } else {
+       callback(err);
+      }
+  });
   }
-], function(err, screen_names) {
+], function(err) {
   if (err) console.log(err)
   if (currentInterest < interests.length - 1) {
     currentInterest++;

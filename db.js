@@ -16,6 +16,7 @@ var interestSchema = new Schema({
 
     // Twitter handles associated with a given interest
   twitter_names: [String],
+  needToRun: Boolean,
 
     // Get the locations by calling:
     // db.interest.findOne().populate('map_data.location').exec(

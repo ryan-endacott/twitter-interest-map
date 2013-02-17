@@ -46,7 +46,7 @@ tweetCrawler.run = function() {
       if (cachedInterests) 
         callback(null, cachedInterests);
       else  
-        db.interest.find(callback);
+        db.interest.find({needToRun: true}, callback)
     },
     function cacheInterests(interests, callback) {
 
@@ -249,6 +249,9 @@ tweetCrawler.run = function() {
       db.user.update({ _id: { $in: uids }}, { $addToSet: { interests: curInterest[0]._id }}, {multi: true}, function(err){ //$addToSet will only add the interest id if it is not already in the array
         callback(err);
       });
+    }, function update_interest_need_to_run(callback) {
+        curInterest[0].needToRun = false;
+        curInterest.save(callback);
     }, function(callback) {
        stats.endTime = new Date();
        console.log(stats);

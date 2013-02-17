@@ -66,7 +66,7 @@ tweetCrawler.run = function() {
         callback("Couldn't find another interest to run.");
     },
     function getFollowerIDs(interest, callback) {
-
+      stats.interest = interest._id;
       async.map(interest.twitter_names, function(twitter_name, callback) {
         twit.get('/followers/ids.json', {screen_name: twitter_name}, callback);
       }, callback);

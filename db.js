@@ -59,7 +59,7 @@ var statSchema = new Schema({
   start_time: Number,
   end_time: Number,
   time_to_run: Number,
-
+  interest: {type: Schema.Types.ObjectId, ref: 'interest'},
   error_message: String
 });
 

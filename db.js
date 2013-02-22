@@ -73,7 +73,7 @@ var statSchema = new Schema({
 // Export models
 
 module.exports = {
-  relativePopulation: mongoose.model('relativeSchema', interestSchema),
+  relativePopulation: mongoose.model('relativeSchema', relativeSchema),
   interest: mongoose.model('interest', interestSchema),
   location: mongoose.model('location', locationSchema),
   interest_locations: mongoose.model('interest_locations', interestLocationsSchema),

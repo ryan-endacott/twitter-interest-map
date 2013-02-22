@@ -35,10 +35,17 @@ var locationSchema = new Schema({
 });
 
 
+
 var userSchema = new Schema({
   twitter_id: Number,
   location: {type: Schema.Types.ObjectId, ref: 'location'},
   interests: [{type: Schema.Types.ObjectId, ref: 'interest'}]
+});
+
+var relativeSchema = new Schema({
+  percentage: Number,
+  type: String,
+  location: String
 });
 
 var interestLocationsSchema = new Schema({
@@ -49,7 +56,6 @@ var interestLocationsSchema = new Schema({
   location_parent: String,
   count: {type: Number, default: 1 }
 });
-
 
 var statSchema = new Schema({
   retrieved_followers: Number,
@@ -67,6 +73,7 @@ var statSchema = new Schema({
 // Export models
 
 module.exports = {
+  relativePopulation: mongoose.model('relativeSchema', interestSchema),
   interest: mongoose.model('interest', interestSchema),
   location: mongoose.model('location', locationSchema),
   interest_locations: mongoose.model('interest_locations', interestLocationsSchema),

@@ -20,7 +20,7 @@ async.waterfall([
       callback(err, data)
     });
   }, function(users, callback) {
-      async.map(users.splice(0,4), function(user, callback) {
+      async.map(users.splice(0,20), function(user, callback) {
         callback(null, user.screen_name);
       }, function(err, screen_names){
         callback(null, screen_names)
@@ -32,7 +32,7 @@ async.waterfall([
   }, function (screen_names, callback) {
      db.interest.findOne({ name: interests[currentInterest]}, function (err, interest) {
       if (!interest) {
-        var new_interest = new db.interest({name: interests[currentInterest], twitter_names: screen_names});
+        var new_interest = new db.interest({name: interests[currentInterest], twitter_names: screen_names, needToRun:true});
         new_interest.save(callback);
       } else {
        callback(err);

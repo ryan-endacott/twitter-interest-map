@@ -250,8 +250,9 @@ tweetCrawler.run = function() {
         callback(err);
       });
     }, function update_interest_need_to_run(callback) {
-        curInterest[0].needToRun = false;
-        curInterest.save(callback);
+        db.interest.update({_id: curInterest[0]._id}, {needToRun: false}, function(err) {
+        callback(err, null);
+      });
     }, function(callback) {
        stats.endTime = new Date();
        console.log(stats);

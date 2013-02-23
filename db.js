@@ -63,11 +63,10 @@ var statSchema = new Schema({
   new_uncached_users: Number,
   before_remove_prev_counted: Number,
   after_remove_prev_counted: Number,
-  start_time: Number,
-  end_time: Number,
   time_to_run: Number,
   interest: {type: Schema.Types.ObjectId, ref: 'interest'},
-  error_message: String
+  error_message: String,
+  error_function: String
 });
 
 // Export models

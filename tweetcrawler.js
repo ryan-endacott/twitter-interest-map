@@ -278,11 +278,16 @@ tweetCrawler.run = function() {
 
       var errIsString = (typeof(err) === 'string')
 
-      stats.error_message = errIsString? err : (err.name + ': ' + err.message);
       console.log(err);
 
+      if (errIsString) {
+        stats.error_message = err;
+        stats.error_function = result;
+      }
       // print stack trace if it's not a string, thus a real error
-      if (!errIsString) {
+      else {
+        stats.error_message = err.name + ': ' + err.message;
+        stats.error_function = result;
         console.log(err.stack);
         console.trace();
       }

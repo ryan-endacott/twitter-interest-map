@@ -43,7 +43,7 @@ var userSchema = new Schema({
 });
 
 var relativeSchema = new Schema({
-  percentage: Number,
+  percentage: String, //the other option is integer which isn't enough precision
   type: String,
   location: String
 });

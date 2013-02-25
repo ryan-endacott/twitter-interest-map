@@ -1,14 +1,24 @@
 var async = require('async'),
       db = require('./db'),
       twitter = require('ntwitter')
+      program = require('commander')
 var twit = new twitter({
   consumer_key: 'n5WyKBVmWudsps8X3GLlaw',
   consumer_secret: 'itjK8WdQkxRMjDB6SbjatovwrxgQhXXx2uLZvfz9Po',
   access_token_key: '1126351788-uZza6Zb6IKLQ3xcdXg8Moegr0OeA6FIljLZQB6U',
   access_token_secret: 'rrqAlFwbWa86KideKwOxlGjtPmPEuP7TR623ivOc'
 })
-var completed_interests = [] //array of screen_name arrays
-var interests = ['comedy', 'CNN']
+function list(val) {
+  return val.split(',')
+}
+program
+  .option('-i, --interests <items>', 'Comma separated list of interests', list)
+  .parse(process.argv)
+if (!program.interests) {
+  console.log('You must enter interests to search for by using command line arguments (-i or --interests then a comma separated list of interests)')
+  process.exit();
+}
+var interests = program.interests
 var currentInterest = 0
 var findTwitterUsers = function() {
 async.waterfall([

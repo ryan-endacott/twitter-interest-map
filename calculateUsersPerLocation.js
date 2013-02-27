@@ -32,7 +32,7 @@ async.waterfall([
     })
 }, function (countries, total, callback) {
     async.forEachSeries(countries, function(country, callback) {
-      var x = new db.relativePopulation({type: 'country', location: country.name, percentage: (100*(country.count)/total).toFixed(3)})
+      var x = new db.relativePopulation({type: 'country', location: country.name, percentage: ((country.count)/total).toFixed(3)})
       x.save(function(err) {
         callback(err)
       })

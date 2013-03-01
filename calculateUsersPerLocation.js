@@ -1,8 +1,9 @@
 var async = require('async'),
     db = require('./db')
-    
 async.waterfall([
   function (callback) {
+    require('./calculateUsersPerLocation_US').run(callback)  //separate file calculates states percentages
+  }, function (callback) {
     db.relativePopulation.where('type').equals('country').remove(function(err) {
       callback(err)
     })

@@ -251,14 +251,14 @@ tweetCrawler.run = function() {
       });
     }, function update_interest_need_to_run(callback) {
         db.interest.update({_id: curInterest[0]._id}, {needToRun: false}, function(err) {
-        callback(err, null);
+        callback(err);
       });
     }, function(callback) {
        stats.endTime = new Date();
        console.log(stats);
       //send stat object to separate app
       console.log('Done with an interest!');
-      callback(null);
+      callback();
     }
 
 

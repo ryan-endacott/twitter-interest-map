@@ -15,7 +15,7 @@ module.exports = {
 
   db: {
     URI: secret.db.URI || process.env.DB
-  }
+  },
 
   twitter: {
     consumer_key: secret.twitter.consumer_key || process.env.TWITTER_CONSUMER_KEY,
@@ -23,5 +23,5 @@ module.exports = {
     access_token_key: secret.twitter.access_token_key || process.env.TWITTER_ACCESS_TOKEN_KEY,
     access_token_secret: secret.twitter.access_token_secret || process.env.TWITTER_ACCESS_TOKEN_SECRET
   }
-  
+
 }

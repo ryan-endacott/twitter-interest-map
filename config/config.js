@@ -12,8 +12,9 @@ catch (e) {
 }
 
 module.exports = {
+
   db: {
-    URI: secret.db.URI || process.env.DB;
+    URI: secret.db.URI || process.env.DB
   }
 
   twitter: {
@@ -22,5 +23,5 @@ module.exports = {
     access_token_key: secret.twitter.access_token_key || process.env.TWITTER_ACCESS_TOKEN_KEY,
     access_token_secret: secret.twitter.access_token_secret || process.env.TWITTER_ACCESS_TOKEN_SECRET
   }
-
+  
 }

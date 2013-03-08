@@ -1,13 +1,16 @@
 var async = require('async'),
       db = require('./db'),
-      twitter = require('ntwitter')
-      program = require('commander')
+      twitter = require('ntwitter'),
+      program = require('commander'),
+      config = require('./config/config');
+      
 var twit = new twitter({
-  consumer_key: 'n5WyKBVmWudsps8X3GLlaw',
-  consumer_secret: 'itjK8WdQkxRMjDB6SbjatovwrxgQhXXx2uLZvfz9Po',
-  access_token_key: '1126351788-uZza6Zb6IKLQ3xcdXg8Moegr0OeA6FIljLZQB6U',
-  access_token_secret: 'rrqAlFwbWa86KideKwOxlGjtPmPEuP7TR623ivOc'
-})
+  consumer_key: config.twitter.consumer_key,
+  consumer_secret: config.twitter.consumer_secret,
+  access_token_key: config.twitter.access_token_key,
+  access_token_secret: config.twitter.access_token_secret
+});
+
 function list(val) {
   return val.split(',')
 }

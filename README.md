@@ -1,4 +1,4 @@
 An Atlas of the World's Interests
 ====================
 
-Warning:  In progress and pretty hacky code.
+Disclaimer:  In progress and pretty hacky code.
